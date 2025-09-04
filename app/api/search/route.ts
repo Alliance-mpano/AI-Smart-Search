@@ -5,8 +5,7 @@ import { db } from '@/lib/db';
 import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
-import { talentVectors } from '@/lib/db/schema/talent_vectors';
-import { talentDocuments } from '@/lib/db/schema/talent_documents';
+import {jobSubmission, talentDocuments, job, talentVectors} from  '@/lib/db/schema/schema'
 
 
 
@@ -23,23 +22,29 @@ async function embedQuery(q: string): Promise<number[]> {
 async function hybridSearch(cleanQ: string, qVec: number[]): Promise<any[]> {
 
     //2nd approach
-
-    const embeddedQuery = await embedQuery(cleanQ);
-    const similarityExpr = sql<number>`
-    1 - (${cosineDistance(talentVectors.vector, embeddedQuery)})`
+    const orgId = 'd6341654-0cc6-480a-a866-16aa47d7c368';
+    const embedded = await embedQuery(cleanQ);
+    const embeddedQuery = `[${Array.from(embedded).join(',')}]`;
     try{
-      const topTalents = await db.
-    select({
-      talent_id: talentVectors.talent_id,
-      summary: talentDocuments.summary,
-      similarity: similarityExpr,
-    })
-    .from(talentVectors)
-    .leftJoin(talentDocuments, sql`${talentVectors.talent_id} = ${talentDocuments.talent_id}`)
-    .where(gt(similarityExpr, 0.5))
-    .orderBy(desc(similarityExpr))
-    .limit(10)
-     return topTalents;
+      const topTalents = await db.execute(sql`
+          WITH cand AS(
+            SELECT DISTINCT ${jobSubmission.userId} AS userId
+            FROM ${jobSubmission}
+            JOIN ${job} ON ${job.id } = ${jobSubmission.jobId}
+            WHERE ${job.organisationId} = ${orgId}
+          )
+          SELECT
+          tv.id,
+          td.summary,
+          1 - (${cosineDistance(sql`tv.vector`, embeddedQuery)}) as similarity
+          FROM cand
+          JOIN "TalentVectors" as tv ON tv.id = cand.userId
+          JOIN "TalentDocuments" as td ON td.id = tv.id
+          ORDER BY (${cosineDistance(sql`tv.vector`, embeddedQuery)}::vector) ASC
+
+        `)
+    console.log(topTalents, "Top Talents")
+     return topTalents?? [];
     }catch (error) {
         console.error('Error during hybrid search:', error);
         return [];
@@ -62,6 +67,7 @@ export async function POST(req: Request) {
   );
 }
 
+
   if (hits.every(h => h.dist > THRESHOLD)) {
     return NextResponse.json({ answer: 'No confident matches—please refine your query.' }, {status:200});
   }
@@ -72,8 +78,8 @@ export async function POST(req: Request) {
   try{
     const chatRes = await  openai('gpt-4o-mini').doGenerate({
     prompt: [
-        { role: 'system', content: `You are a helpful assistant that, given a list of candidate talent objects (with an “id” and “summary” field) and a search query, outputs **only** a JSON array of the IDs of those candidates that satisfy the query. 
-        If none match, return people with the  skills or experiences that can fit the query's search, if there's no such people,  output an empty JSON array: []. Do not output any other text.`.trim() },
+        { role: 'system', content: `You are a helpful assistant that, given a list of candidate talent objects (with an “id” and “summary” field) and a search query, outputs **only** a JSON array of the IDs of those candidates except those whose summaries are empty.
+        if all of the candidates do not match the searched query,  output an empty JSON array: []. Do not output any other text.`.trim() },
         { role: 'user',
             content:  [{
             type: 'text',
@@ -83,7 +89,7 @@ export async function POST(req: Request) {
     ],
   });
   const answer = chatRes.content.map(c => c.type === 'text'? c.text: '').join(' ').trim() ?? 'Unable to generate an answer.';
-
+  console.log(answer, "Answer from the chat model")
   const jsonOnly = answer
   .replace(/```json\s*/, '')    
   .replace(/```$/, '')         

@@ -1,14 +1,12 @@
     import 'dotenv/config'
     import { db } from '@/lib/db'
-    import { talents } from '@/lib/db/schema/talents'
     import { sql } from 'drizzle-orm'
     const embeddingModel = openai.embedding('text-embedding-ada-002');
 import { openai } from '@ai-sdk/openai'
-import { user, resume, resumeLanguage, resumeSkill, education, workExperience, talentDocuments, language } from '@/lib/db/schema/schema';
+import { user, resume, resumeLanguage, resumeSkill, education, workExperience, talentDocuments, language, talentVectors } from '@/lib/db/schema/schema';
 
     import { chunkText } from '../utils'
-import { embedMany } from 'ai'
-import { talentVectors } from '../db/schema/talent_vectors'
+import { embed, embedMany } from 'ai'
 import { uuid } from 'drizzle-orm/pg-core';
 type UUID = string;
     // regenerate just one talent’s document:
@@ -179,7 +177,7 @@ const summary = parts.join(' ').replace(/\s+/g, ' ').trim();
   
 
   // 3) upsert into talent_documents
-  await db
+  const docRes = await db
     .insert(talentDocuments)
     .values({
         id: row.Id,
@@ -188,11 +186,15 @@ const summary = parts.join(' ').replace(/\s+/g, ' ').trim();
     .onConflictDoUpdate({
       target: talentDocuments.id,
       set: {
-        summary: summary
+        summary:  sql`EXCLUDED.summary`,
       },
+      where:sql`${talentDocuments.summary} IS DISTINCT FROM EXCLUDED.summary`
     })
+    .returning({id: talentDocuments.id})
+
+    const summaryChanged = docRes.length > 0;
     // 4) generate vectors for the summary
-    
+
     //  const textToChunk = summary.length > 1000
     //     ? JSON.stringify(metadata)  // fallback if summary is huge
     //     : summary;
@@ -203,12 +205,26 @@ const summary = parts.join(' ').replace(/\s+/g, ' ').trim();
     //     model: embeddingModel,
     //     values: chunks
     // });
-    // await db.insert(talentVectors).values(
-    //     embeddings.map((embedding) => ({
-    //         talent_id: row.id,
-    //         vector: embedding,
-    //     }))
-    // ).onConflictDoNothing();
-    console.log(`Talent document for ${row.Name} (${row.Id}) upserted.`)    
+    if(summaryChanged){
+      
+      const response = await embed( {
+      model: embeddingModel,
+      value: summary
+    })
+    await db.insert(talentVectors).values(
+      {
+        id: row.Id,
+        vector: response.embedding
+      }
+    ).onConflictDoUpdate({
+      target: talentVectors.id,
+      set: { vector: sql`EXCLUDED.vector` },
+      where: sql`${talentVectors.vector} IS DISTINCT FROM EXCLUDED.vector`,
+    }
+    );
+    }else{
+      console.log("No changes made")
+    }
+    console.log(`Talent vector generated for ${name} (${talentId})`);
 
     }

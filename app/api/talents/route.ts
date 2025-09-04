@@ -1,17 +1,15 @@
 
 
-import { user, workExperience, education, resume, resumeLanguage, resumeSkill, language } from '@/lib/db/schema/schema';
+import { user, workExperience, education, resume, resumeLanguage, resumeSkill, language, jobSubmission, job, organisation } from '@/lib/db/schema/schema';
 
 import { sql } from 'drizzle-orm';
 import {db} from '@/lib/db';
 
 async function getAllTalentsDocuments(pageSize:number, offset:number) {
     try {
-        const [{ count }] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(user);
+       
         console.log('Fetching all talents documents');
-
+const orgId = 'd6341654-0cc6-480a-a866-16aa47d7c368';
 const data = await db
   .select({
     Id:   user.id,
@@ -20,7 +18,6 @@ const data = await db
     `.mapWith(String),
 
     Biography: resume.biography,
-
     // Languages
     Language: sql<string[]>`
       (
@@ -111,11 +108,36 @@ const data = await db
   })
   .from(user)
   .leftJoin(resume, sql`${resume.userId} = ${user.id}`)
-  .limit(pageSize)
-  .offset(offset)
+  .where(sql`
+    EXISTS (SELECT 1
+      FROM ${jobSubmission}
+      JOIN ${job} ON ${job.id} = ${jobSubmission.jobId}  
+      WHERE ${jobSubmission.userId} = ${user.id} AND ${job.organisationId} = ${orgId}
+    )
+    `)
+  .orderBy(user.lastName, user.firstName)
+  // .limit(pageSize)
+  // .offset(offset)
 
-  return {data: data, count:count} 
+  const count = await db.execute(
+    sql`
+      SELECT COUNT(*)::int AS count
+      FROM (
+        SELECT ${user.id}
+        FROM ${user}
+        WHERE EXISTS(
+        SELECT 1
+        FROM ${jobSubmission}
+        JOIN ${job} ON ${job.id} = ${jobSubmission.jobId}
+        WHERE ${jobSubmission.userId} = ${user.id} AND ${job.organisationId} = ${orgId}
+        
+        )GROUP BY ${user.id}
+      ) sub
+    `
+  )
+  console.log('Fetched talents:', data.length, 'Total count:', count[0].count);
 
+  return {data: data, count: count[0].count}; 
   } catch (error) {
         console.error('Error fetching talents:', error);
         throw new Error('Failed to fetch talents');

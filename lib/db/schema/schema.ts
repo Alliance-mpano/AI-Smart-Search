@@ -1,4 +1,4 @@
-import { pgTable, uniqueIndex, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, varchar, smallint, doublePrecision, json, date, bigint, customType, numeric, pgSchema, serial, index } from "drizzle-orm/pg-core"
+import { pgTable, uniqueIndex, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, varchar, smallint, doublePrecision, json, date, bigint, customType, numeric, index, vector, pgSchema, serial } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 import { relations } from "drizzle-orm/relations";
@@ -56,7 +56,7 @@ export const aiTokenUsageLogs = pgTable("AiTokenUsageLogs", {
 });
 
 export const banner = pgTable("Banner", {
-	id: integer("Id").default(sql`nextval('"Banner_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Banner_Id_seq"'::regclass)`).primaryKey().notNull(),
 	imageUrl: text("ImageUrl").notNull(),
 	userId: uuid("UserId").notNull(),
 },
@@ -79,7 +79,7 @@ export const bookmark = pgTable("Bookmark", {
 });
 
 export const category = pgTable("Category", {
-	id: integer("Id").default(sql`nextval('"Category_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Category_Id_seq"'::regclass)`).primaryKey().notNull(),
 	label: varchar("Label"),
 	parent: integer("parent"),
 },
@@ -128,7 +128,7 @@ export const companySignatures = pgTable("CompanySignatures", {
 });
 
 export const contentType = pgTable("ContentType", {
-	id: integer("Id").default(sql`nextval('"TaskType_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"TaskType_Id_seq"'::regclass)`).primaryKey().notNull(),
 	type: text("Type").notNull(),
 },
 (table) => {
@@ -138,7 +138,7 @@ export const contentType = pgTable("ContentType", {
 });
 
 export const deactivatedAccounts = pgTable("DeactivatedAccounts", {
-	id: integer("Id").default(sql`nextval('"DeactivatedAccounts_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"DeactivatedAccounts_Id_seq"'::regclass)`).primaryKey().notNull(),
 	email: varchar("Email").notNull(),
 	reason: varchar("Reason"),
 	deactivatedOn: timestamp("DeactivatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
@@ -153,7 +153,7 @@ export const deactivatedAccounts = pgTable("DeactivatedAccounts", {
 });
 
 export const difficulty = pgTable("Difficulty", {
-	id: integer("Id").default(sql`nextval('"Difficulty_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Difficulty_Id_seq"'::regclass)`).primaryKey().notNull(),
 	label: varchar("Label"),
 },
 (table) => {
@@ -184,7 +184,7 @@ export const education = pgTable("Education", {
 });
 
 export const emailSubscription = pgTable("EmailSubscription", {
-	id: integer("Id").default(sql`nextval('"EmailSubscription_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"EmailSubscription_Id_seq"'::regclass)`).primaryKey().notNull(),
 	type: varchar("Type").notNull(),
 	description: text("Description"),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
@@ -205,7 +205,7 @@ export const experience = pgTable("Experience", {
 	imageUrl: text("ImageUrl"),
 	difficulty: integer("Difficulty").notNull(),
 	status: integer("Status").default(sql`3`),
-	id: integer("Id").default(sql`nextval('"Experience_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Experience_Id_seq"'::regclass)`).primaryKey().notNull(),
 	organisationId: uuid("OrganisationId").default(sql`bae9f764-95ac-4629-bef6-3d2724eaf9c3`).notNull(),
 	defaultFeedback: text("DefaultFeedback"),
 	isJob: boolean("isJob").default(sql`false`).notNull(),
@@ -374,7 +374,7 @@ export const hiringStatus = pgTable("HiringStatus", {
 	statusName: text("StatusName").notNull(),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-	id: integer("Id").default(sql`nextval('"HiringStatus_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"HiringStatus_Id_seq"'::regclass)`).primaryKey().notNull(),
 	jobId: integer("JobId"),
 	orderNumber: integer("OrderNumber"),
 },
@@ -394,7 +394,7 @@ export const hiringTemplates = pgTable("HiringTemplates", {
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	userId: uuid("UserId").notNull(),
 	isPublic: boolean("IsPublic").default(sql`true`).notNull(),
-	id: integer("Id").default(sql`nextval('"HiringTemplates_TemplateId_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"HiringTemplates_TemplateId_seq"'::regclass)`).primaryKey().notNull(),
 },
 (table) => {
 	return {
@@ -417,11 +417,11 @@ export const institution = pgTable("Institution", {
 });
 
 export const invitation = pgTable("Invitation", {
-	id: integer("Id").default(sql`nextval('"Invitation_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Invitation_Id_seq"'::regclass)`).primaryKey().notNull(),
 	email: varchar("Email"),
 	invitedOn: timestamp("InvitedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	invitedBy: uuid("InvitedBy").notNull(),
-	status: varchar("Status").default(sql`PENDING`).notNull(),
+	status: varchar("Status").default(sql`'PENDING'`).notNull(),
 	updatedAt: timestamp("UpdatedAt", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	role: integer("Role").default(sql`20`).notNull(),
 	organisationId: uuid("OrganisationId").notNull(),
@@ -434,7 +434,7 @@ export const invitation = pgTable("Invitation", {
 });
 
 export const job = pgTable("Job", {
-	id: integer("Id").default(sql`nextval('"Job_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Job_Id_seq"'::regclass)`).primaryKey().notNull(),
 	title: text("Title").notNull(),
 	location: text("Location"),
 	employmentType: text("EmploymentType"),
@@ -460,7 +460,7 @@ export const job = pgTable("Job", {
 	currency: varchar("Currency"),
 	metadata: jsonb("Metadata").default(sql`jsonb_build_object()`),
 	educationLevel: varchar("EducationLevel"),
-	gradingPrompt: text("GradingPrompt").default(sql``),
+	gradingPrompt: text("GradingPrompt").default(sql`''`),
 },
 (table) => {
 	return {
@@ -545,7 +545,7 @@ export const jobSubSkill = pgTable("JobSubSkill", {
 });
 
 export const language = pgTable("Language", {
-	id: integer("Id").default(sql`nextval('"Language_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Language_Id_seq"'::regclass)`).primaryKey().notNull(),
 	name: varchar("Name"),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow(),
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow(),
@@ -571,7 +571,7 @@ export const media = pgTable("Media", {
 });
 
 export const mediaType = pgTable("MediaType", {
-	id: integer("Id").default(sql`nextval('"MediaType_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"MediaType_Id_seq"'::regclass)`).primaryKey().notNull(),
 	type: text("Type").notNull(),
 },
 (table) => {
@@ -582,7 +582,7 @@ export const mediaType = pgTable("MediaType", {
 });
 
 export const metrics = pgTable("Metrics", {
-	id: integer("Id").default(sql`nextval('"Metrics_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Metrics_Id_seq"'::regclass)`).primaryKey().notNull(),
 	newUsers: integer("NewUsers").notNull(),
 	activeUsers: integer("ActiveUsers").notNull(),
 	averageLoggedUsers: integer("AverageLoggedUsers").notNull(),
@@ -607,7 +607,7 @@ export const metrics = pgTable("Metrics", {
 });
 
 export const mode = pgTable("Mode", {
-	id: integer("Id").default(sql`nextval('"Mode_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Mode_Id_seq"'::regclass)`).primaryKey().notNull(),
 	name: text("Name").notNull(),
 },
 (table) => {
@@ -617,7 +617,7 @@ export const mode = pgTable("Mode", {
 });
 
 export const openPosition = pgTable("OpenPosition", {
-	id: bigint("Id", { mode: "number" }).default(sql`nextval('"OpenPosition_Id_seq"')`).primaryKey().notNull(),
+	id: bigint("Id", { mode: "number" }).default(sql`nextval('"OpenPosition_Id_seq"'::regclass)`).primaryKey().notNull(),
 	title: text("Title").notNull(),
 	description: text("Description").notNull(),
 	openDate: date("OpenDate").notNull(),
@@ -688,7 +688,7 @@ export const organisationInterest = pgTable("OrganisationInterest", {
 });
 
 export const organisationType = pgTable("OrganisationType", {
-	id: integer("Id").default(sql`nextval('"OrganisationType_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"OrganisationType_Id_seq"'::regclass)`).primaryKey().notNull(),
 	name: text("Name").notNull(),
 },
 (table) => {
@@ -751,7 +751,7 @@ export const pathwaySubmissions = pgTable("PathwaySubmissions", {
 });
 
 export const planMode = pgTable("PlanMode", {
-	id: integer("Id").default(sql`nextval('"PremiumMode_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"PremiumMode_Id_seq"'::regclass)`).primaryKey().notNull(),
 	mode: integer("Mode").notNull(),
 	description: text("Description"),
 },
@@ -786,11 +786,11 @@ export const prescreen = pgTable("Prescreen", {
 	schema: jsonb("Schema").notNull(),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-	id: integer("Id").default(sql`nextval('"Prescreen_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Prescreen_Id_seq"'::regclass)`).primaryKey().notNull(),
 	createdBy: uuid("CreatedBy").notNull(),
 	deadline: timestamp("Deadline", { withTimezone: true, mode: 'string' }),
 	organisationId: uuid("OrganisationId"),
-	type: varchar("Type").default(sql`JOB`).notNull(),
+	type: varchar("Type").default(sql`'JOB'`).notNull(),
 },
 (table) => {
 	return {
@@ -874,7 +874,7 @@ export const programSubmissions = pgTable("ProgramSubmissions", {
 });
 
 export const programType = pgTable("ProgramType", {
-	id: integer("Id").default(sql`nextval('"ProgramType_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"ProgramType_Id_seq"'::regclass)`).primaryKey().notNull(),
 	name: text("Name").notNull(),
 },
 (table) => {
@@ -919,7 +919,7 @@ export const questionChoice = pgTable("QuestionChoice", {
 });
 
 export const questionType = pgTable("QuestionType", {
-	id: integer("Id").default(sql`nextval('"QuestionType_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"QuestionType_Id_seq"'::regclass)`).primaryKey().notNull(),
 	qtype: varchar("Qtype"),
 },
 (table) => {
@@ -948,7 +948,7 @@ export const resume = pgTable("Resume", {
 	biography: varchar("Biography"),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow(),
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow(),
-	metadata: jsonb("Metadata").default(sql`{}`).notNull(),
+	metadata: jsonb("Metadata").default(sql`'{}'`).notNull(),
 	headline: text("Headline"),
 	cvLink: varchar("CvLink"),
 	availability: integer("Availability").default(sql`2`).notNull(),
@@ -1002,7 +1002,7 @@ export const role = pgTable("Role", {
 });
 
 export const rubric = pgTable("Rubric", {
-	id: integer("Id").default(sql`nextval('"Rubric_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Rubric_Id_seq"'::regclass)`).primaryKey().notNull(),
 	label: varchar("Label"),
 },
 (table) => {
@@ -1012,7 +1012,7 @@ export const rubric = pgTable("Rubric", {
 });
 
 export const rubricResponse = pgTable("RubricResponse", {
-	id: integer("Id").default(sql`nextval('"RubricResponse_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"RubricResponse_Id_seq"'::regclass)`).primaryKey().notNull(),
 	rubricId: integer("RubricId").notNull(),
 	score: integer("Score").notNull(),
 	message: text("Message").notNull(),
@@ -1048,7 +1048,7 @@ export const sharedCandidateList = pgTable("SharedCandidateList", {
 	termsAccepted: boolean("TermsAccepted").default(sql`false`).notNull(),
 	termsAcceptedAt: timestamp("TermsAcceptedAt", { withTimezone: true, mode: 'string' }),
 	termsSignedBy: varchar("TermsSignedBy"),
-	status: varchar("Status").default(sql`active`).notNull(),
+	status: varchar("Status").default(sql`'active'`).notNull(),
 	firstViewedAt: timestamp("FirstViewedAt", { withTimezone: true, mode: 'string' }),
 	lastViewedAt: timestamp("LastViewedAt", { withTimezone: true, mode: 'string' }),
 	metadata: jsonb("Metadata").default(sql`jsonb_build_object()`),
@@ -1071,7 +1071,7 @@ export const sharedCandidateList = pgTable("SharedCandidateList", {
 });
 
 export const skill = pgTable("Skill", {
-	id: integer("Id").default(sql`nextval('"Skill_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Skill_Id_seq"'::regclass)`).primaryKey().notNull(),
 	name: varchar("Name"),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow(),
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow(),
@@ -1133,7 +1133,7 @@ export const subRole = pgTable("SubRole", {
 });
 
 export const subSkill = pgTable("SubSkill", {
-	id: integer("Id").default(sql`nextval('"SubSkill_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"SubSkill_Id_seq"'::regclass)`).primaryKey().notNull(),
 	label: text("Label").notNull(),
 	skillId: integer("SkillId").notNull(),
 },
@@ -1145,7 +1145,7 @@ export const subSkill = pgTable("SubSkill", {
 });
 
 export const subSkillResponse = pgTable("SubSkillResponse", {
-	id: integer("Id").default(sql`nextval('"SubSkillResponse_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"SubSkillResponse_Id_seq"'::regclass)`).primaryKey().notNull(),
 	subSkillId: integer("SubSkillId").notNull(),
 	score: integer("Score").notNull(),
 	message: text("Message").notNull(),
@@ -1167,6 +1167,17 @@ export const talentDocuments = pgTable("TalentDocuments", {
 	}
 });
 
+export const talentVectors = pgTable("TalentVectors", {
+	id: uuid("id").primaryKey().notNull(),
+	vector: vector("vector", {dimensions: 1536}).notNull(),
+},
+(table) => {
+	return {
+		idxTalentVectorsEmbedding: index("idx_talent_vectors_embedding").on(table.vector),
+		pkey: uniqueIndex("TalentVectors_pkey").on(table.id),
+	}
+});
+
 export const task = pgTable("Task", {
 	title: varchar("Title").notNull(),
 	description: varchar("Description"),
@@ -1177,7 +1188,7 @@ export const task = pgTable("Task", {
 	organisationId: uuid("OrganisationId"),
 	defaultFeedback: text("DefaultFeedback"),
 	imageUrl: text("ImageUrl"),
-	id: integer("Id").default(sql`nextval('"Case_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"Case_Id_seq"'::regclass)`).primaryKey().notNull(),
 	status: integer("Status"),
 		searchTaskCol: customType({ dataType: () => 'tsvector' })("SearchTaskCol"),
 	skillId: integer("SkillId"),
@@ -1258,7 +1269,7 @@ export const tasks = pgTable("Tasks", {
 });
 
 export const taskStatus = pgTable("TaskStatus", {
-	id: integer("Id").default(sql`nextval('"CaseStatus_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"CaseStatus_Id_seq"'::regclass)`).primaryKey().notNull(),
 	label: text("Label").notNull(),
 },
 (table) => {
@@ -1339,12 +1350,12 @@ export const user = pgTable("User", {
 	dateOfBirth: date("DateOfBirth"),
 	emailVerified: timestamp("EmailVerified", { withTimezone: true, mode: 'string' }),
 	socials: jsonb("Socials").default(sql`jsonb_build_object()`).notNull(),
-	updatedUserNameOn: date("UpdatedUserNameOn").default(sql`(now() - '3 mons')`).notNull(),
+	updatedUserNameOn: date("UpdatedUserNameOn").default(sql`(now() - '3 mons'::interval)`).notNull(),
 	shouldRegister: boolean("ShouldRegister").default(sql`true`).notNull(),
 	whatsappVerified: boolean("WhatsappVerified").default(sql`false`).notNull(),
 	gwenToken: text("GwenToken"),
 	subRoleId: integer("SubRoleId"),
-	organisationInviteStatus: text("OrganisationInviteStatus").default(sql`NO_INVITE`).notNull(),
+	organisationInviteStatus: text("OrganisationInviteStatus").default(sql`'NO_INVITE'`).notNull(),
 	cvLink: varchar("CVLink"),
 	isStudent: boolean("IsStudent").default(sql`true`).notNull(),
 	mode: integer("Mode").default(sql`1`).notNull(),
@@ -1376,7 +1387,7 @@ export const userDrafts = pgTable("user_drafts", {
 });
 
 export const userAvailability = pgTable("UserAvailability", {
-	id: integer("Id").default(sql`nextval('"UserAvailability_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"UserAvailability_Id_seq"'::regclass)`).primaryKey().notNull(),
 	name: varchar("Name").notNull(),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
@@ -1418,7 +1429,7 @@ export const userGroup = pgTable("UserGroup", {
 	userEmail: varchar("UserEmail").notNull(),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedOn: timestamp("UpdatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-	id: integer("Id").default(sql`nextval('"UserGroup_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"UserGroup_Id_seq"'::regclass)`).primaryKey().notNull(),
 	groupId: uuid("GroupId").notNull(),
 	metadata: jsonb("Metadata"),
 	inviteStatus: integer("InviteStatus"),
@@ -1446,7 +1457,7 @@ export const userHiringStatus = pgTable("UserHiringStatus", {
 });
 
 export const userInterest = pgTable("UserInterest", {
-	id: integer("Id").default(sql`nextval('"UserInterest_Id_seq"')`).primaryKey().notNull(),
+	id: integer("Id").default(sql`nextval('"UserInterest_Id_seq"'::regclass)`).primaryKey().notNull(),
 	skillId: integer("SkillId").notNull(),
 	userId: uuid("UserId").notNull(),
 	createdOn: timestamp("CreatedOn", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
@@ -1531,7 +1542,7 @@ export const workExperience = pgTable("WorkExperience", {
 	resumeId: uuid("ResumeId").notNull(),
 	isCurrent: boolean("IsCurrent").default(sql`true`).notNull(),
 	verificationStatus: integer("VerificationStatus").default(sql`1`).notNull(),
-	metadata: jsonb("Metadata").default(sql`{}`).notNull(),
+	metadata: jsonb("Metadata").default(sql`'{}'`).notNull(),
 	skillId: integer("SkillId"),
 	yearsOfExperience: integer("YearsOfExperience"),
 },
@@ -1627,7 +1638,7 @@ export const hdbCronEventsInHdbCatalog = hdbCatalog.table("hdb_cron_events", {
 	id: text("id").default(sql`hdb_catalog.gen_hasura_uuid()`).primaryKey().notNull(),
 	triggerName: text("trigger_name").notNull(),
 	scheduledTime: timestamp("scheduled_time", { withTimezone: true, mode: 'string' }).notNull(),
-	status: text("status").default(sql`scheduled`).notNull(),
+	status: text("status").default(sql`'scheduled'`).notNull(),
 	tries: integer("tries").default(sql`0`).notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	nextRetryAt: timestamp("next_retry_at", { withTimezone: true, mode: 'string' }),
@@ -1687,7 +1698,7 @@ export const hdbScheduledEventsInHdbCatalog = hdbCatalog.table("hdb_scheduled_ev
 	retryConf: json("retry_conf"),
 	payload: json("payload"),
 	headerConf: json("header_conf"),
-	status: text("status").default(sql`scheduled`).notNull(),
+	status: text("status").default(sql`'scheduled'`).notNull(),
 	tries: integer("tries").default(sql`0`).notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	nextRetryAt: timestamp("next_retry_at", { withTimezone: true, mode: 'string' }),
@@ -1727,8 +1738,8 @@ export const hdbVersionInHdbCatalog = hdbCatalog.table("hdb_version", {
 	hasuraUuid: uuid("hasura_uuid").default(sql`hdb_catalog.gen_hasura_uuid()`).primaryKey().notNull(),
 	version: text("version").notNull(),
 	upgradedOn: timestamp("upgraded_on", { withTimezone: true, mode: 'string' }).notNull(),
-	cliState: jsonb("cli_state").default(sql`{}`).notNull(),
-	consoleState: jsonb("console_state").default(sql`{}`).notNull(),
+	cliState: jsonb("cli_state").default(sql`'{}'`).notNull(),
+	consoleState: jsonb("console_state").default(sql`'{}'`).notNull(),
 	eeClientId: text("ee_client_id"),
 	eeClientSecret: text("ee_client_secret"),
 },
@@ -1878,6 +1889,7 @@ export const organisationRelations = relations(organisation, ({one, many}) => ({
 	programs: many(program),
 	sharedCandidateLists: many(sharedCandidateList),
 	tasks_organisationId: many(task),
+	tasks_organisationId: many(tasks),
 	templates: many(template),
 	users: many(user, {
 		relationName: "user_organisationId_organisation_id"
@@ -2211,6 +2223,7 @@ export const skillRelations = relations(skill, ({many}) => ({
 	resumeSkills: many(resumeSkill),
 	subSkills: many(subSkill),
 	tasks_skillId: many(task),
+	tasks_skillId: many(tasks),
 	userInterests: many(userInterest),
 	userSubSkills: many(userSubSkill),
 	workExperiences: many(workExperience),
@@ -2720,10 +2733,18 @@ export const subSkillResponseRelations = relations(subSkillResponse, ({one}) => 
 	}),
 }));
 
-export const talentDocumentsRelations = relations(talentDocuments, ({one}) => ({
+export const talentDocumentsRelations = relations(talentDocuments, ({one, many}) => ({
 	user: one(user, {
 		fields: [talentDocuments.id],
 		references: [user.id]
+	}),
+	talentVectors: many(talentVectors),
+}));
+
+export const talentVectorsRelations = relations(talentVectors, ({one}) => ({
+	talentDocument: one(talentDocuments, {
+		fields: [talentVectors.id],
+		references: [talentDocuments.id]
 	}),
 }));
 
